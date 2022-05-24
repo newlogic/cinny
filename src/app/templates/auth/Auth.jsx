@@ -511,6 +511,7 @@ function AuthCard() {
 
 function Auth() {
   const [loginToken, setLoginToken] = useState(getUrlPrams('loginToken'));
+  const [jwt, setJWT] = useState(getUrlPrams('jwt'));
 
   useEffect(async () => {
     if (!loginToken) return;
@@ -529,12 +530,28 @@ function Auth() {
     }
   }, []);
 
+  useEffect(async () => {
+    if (!jwt) return;
+    try {
+      const payload = JSON.parse(window.atob(jwt.split(/\./g)[1]));
+      if (payload.home_server === undefined) {
+        throw new Error();
+      }
+      const baseUrl = payload.home_server;
+      await auth.loginWithJWT(baseUrl, jwt);
+    } catch {
+      setJWT(null);
+    }
+    const newUrl = window.location.href.replace(window.location.search, '');
+    window.location.replace(newUrl);
+  }, []);
+
   return (
     <ScrollView invisible>
       <div className="auth__base">
         <div className="auth__wrapper">
-          {loginToken && <LoadingScreen message="Redirecting..." />}
-          {!loginToken && (
+          {(loginToken || jwt) && <LoadingScreen message="Redirecting..." />}
+          {!loginToken && !jwt && (
             <div className="auth-card">
               <Header>
                 <Avatar size="extra-small" imageSrc={CinnySvg} />

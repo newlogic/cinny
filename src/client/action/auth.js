@@ -52,6 +52,17 @@ async function loginWithToken(baseUrl, token) {
   updateLocalStore(res.access_token, res.device_id, res.user_id, myBaseUrl);
 }
 
+async function loginWithJWT(baseUrl, token) {
+  const client = createTemporaryClient(baseUrl);
+
+  const res = await client.login('org.matrix.login.jwt', {
+    token,
+  });
+
+  const myBaseUrl = res?.well_known?.['m.homeserver']?.base_url || client.baseUrl;
+  updateLocalStore(res.access_token, res.device_id, res.user_id, myBaseUrl);
+}
+
 // eslint-disable-next-line camelcase
 async function verifyEmail(baseUrl, email, client_secret, send_attempt, next_link) {
   const res = await fetch(`${baseUrl}/_matrix/client/r0/register/email/requestToken`, {
@@ -99,6 +110,6 @@ async function completeRegisterStage(
 
 export {
   createTemporaryClient, login, verifyEmail,
-  loginWithToken, startSsoLogin,
+  loginWithToken, loginWithJWT, startSsoLogin,
   completeRegisterStage,
 };
