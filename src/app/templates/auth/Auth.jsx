@@ -87,7 +87,7 @@ function Homeserver({ onChange }) {
   }, [hs]);
 
   useEffect(async () => {
-    const link = window.location.href;
+    const link = window.location.href.replace(window.location.search, '');
     const configFileUrl = `${link}${link[link.length - 1] === '/' ? '' : '/'}config.json`;
     try {
       const result = await (await fetch(configFileUrl, { method: 'GET' })).json();
