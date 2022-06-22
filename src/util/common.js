@@ -102,6 +102,20 @@ export function getUrlPrams(paramName) {
   return urlParams.get(paramName);
 }
 
+export function removeUrlParams(paramName, { reload = false } = {}) {
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  urlParams.delete(paramName);
+
+  const newUrl = new URL(window.location.href);
+  newUrl.search = urlParams.toString();
+  if (reload) {
+    window.location.replace(newUrl.toString());
+  } else {
+    window.history.replaceState(null, null, newUrl);
+  }
+}
+
 export function getScrollInfo(target) {
   const scroll = {};
   scroll.top = Math.round(target.scrollTop);

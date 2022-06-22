@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './RoomsCategory.scss';
 
 import initMatrix from '../../../client/initMatrix';
 import { selectSpace, selectRoom, openReusableContextMenu } from '../../../client/action/navigation';
-import { getEventCords } from '../../../util/common';
+import { getEventCords, getUrlPrams, removeUrlParams } from '../../../util/common';
 
 import Text from '../../atoms/text/Text';
 import RawIcon from '../../atoms/system-icons/RawIcon';
@@ -23,6 +23,16 @@ function RoomsCategory({
 }) {
   const { spaces, directs } = initMatrix.roomList;
   const [isOpen, setIsOpen] = useState(true);
+  const [openRoomId] = useState(getUrlPrams('roomId'));
+
+  useEffect(() => {
+    if (openRoomId) {
+      setTimeout(() => {
+        selectRoom(openRoomId);
+        removeUrlParams('roomId');
+      }, 0);
+    }
+  }, []);
 
   const openSpaceOptions = (e) => {
     e.preventDefault();

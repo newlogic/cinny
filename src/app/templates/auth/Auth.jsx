@@ -7,7 +7,7 @@ import { Formik } from 'formik';
 
 import * as auth from '../../../client/action/auth';
 import cons from '../../../client/state/cons';
-import { Debounce, getUrlPrams } from '../../../util/common';
+import { Debounce, getUrlPrams, removeUrlParams } from '../../../util/common';
 import { getBaseUrl } from '../../../util/matrixUtil';
 
 import Text from '../../atoms/text/Text';
@@ -542,8 +542,7 @@ function Auth() {
     } catch {
       setJWT(null);
     }
-    const newUrl = window.location.href.replace(window.location.search, '');
-    window.location.replace(newUrl);
+    removeUrlParams('jwt', { reload: true });
   }, []);
 
   return (
