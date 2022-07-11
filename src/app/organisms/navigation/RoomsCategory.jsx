@@ -5,6 +5,7 @@ import './RoomsCategory.scss';
 import initMatrix from '../../../client/initMatrix';
 import { selectSpace, selectRoom, openReusableContextMenu } from '../../../client/action/navigation';
 import { getEventCords, getUrlPrams, removeUrlParams } from '../../../util/common';
+import { join as joinRoom } from '../../../client/action/room';
 
 import Text from '../../atoms/text/Text';
 import RawIcon from '../../atoms/system-icons/RawIcon';
@@ -23,16 +24,20 @@ function RoomsCategory({
 }) {
   const { spaces, directs } = initMatrix.roomList;
   const [isOpen, setIsOpen] = useState(true);
-  const [openRoomId] = useState(getUrlPrams('roomId'));
+  const [openRoomId, setOpenRoomId] = useState(getUrlPrams('roomId'));
 
   useEffect(() => {
     if (openRoomId) {
-      setTimeout(() => {
+      setTimeout(async () => {
+        if (!roomIds.includes(openRoomId)) {
+          await joinRoom(openRoomId, false);
+        }
         selectRoom(openRoomId);
         removeUrlParams('roomId');
+        setOpenRoomId(null);
       }, 0);
     }
-  }, []);
+  }, [roomIds, openRoomId]);
 
   const openSpaceOptions = (e) => {
     e.preventDefault();

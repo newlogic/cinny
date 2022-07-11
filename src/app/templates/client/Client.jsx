@@ -18,6 +18,8 @@ import initMatrix from '../../../client/initMatrix';
 import navigation from '../../../client/state/navigation';
 import cons from '../../../client/state/cons';
 import DragDrop from '../../organisms/drag-drop/DragDrop';
+import { getUrlPrams } from '../../../util/common';
+import { join as joinRoom } from '../../../client/action/room';
 
 function Client() {
   const [isLoading, changeLoading] = useState(true);
@@ -62,11 +64,16 @@ function Client() {
       setLoadingMsg(msgList[counter]);
       counter += 1;
     }, 15000);
-    initMatrix.once('init_loading_finished', () => {
+    initMatrix.once('init_loading_finished', async () => {
       clearInterval(iId);
       initHotkeys();
       initRoomListListener(initMatrix.roomList);
       changeLoading(false);
+
+      const openRoomId = getUrlPrams('roomId');
+      if (openRoomId) {
+        await joinRoom(openRoomId, false);
+      }
     });
     initMatrix.init();
   }, []);
