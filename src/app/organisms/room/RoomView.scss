@@ -35,9 +35,9 @@
     @extend .cp-fx__item-one;
     position: relative;
   }
-  
+
   &__sticky {
-    min-height: 85px;
+    min-height: 56px;
     position: relative;
     background: var(--bg-surface);
     border-top: 1px solid var(--bg-surface-border);

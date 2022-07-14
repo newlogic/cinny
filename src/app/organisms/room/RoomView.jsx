@@ -6,8 +6,10 @@ import EventEmitter from 'events';
 
 import cons from '../../../client/state/cons';
 import navigation from '../../../client/state/navigation';
+import { getUrlPrams } from '../../../util/common';
 
 import RoomViewHeader from './RoomViewHeader';
+import RoomViewHeaderEmbedded from './RoomViewHeaderEmbedded';
 import RoomViewContent from './RoomViewContent';
 import RoomViewFloating from './RoomViewFloating';
 import RoomViewInput from './RoomViewInput';
@@ -19,6 +21,7 @@ function RoomView({ roomTimeline, eventId }) {
   const roomViewRef = useRef(null);
   // eslint-disable-next-line react/prop-types
   const { roomId } = roomTimeline;
+  const isEmbed = getUrlPrams('embed') === 'true';
 
   useEffect(() => {
     const settingsToggle = (isVisible) => {
@@ -40,8 +43,10 @@ function RoomView({ roomTimeline, eventId }) {
   }, []);
 
   return (
-    <div className="room-view" ref={roomViewRef}>
-      <RoomViewHeader roomId={roomId} />
+    <div className="room-view" ref={roomViewRef} style={{ '--header-height': isEmbed ? '36px' : '54px' }}>
+      {isEmbed
+        ? <RoomViewHeaderEmbedded roomId={roomId} />
+        : <RoomViewHeader roomId={roomId} />}
       <div className="room-view__content-wrapper">
         <div className="room-view__scrollable">
           <RoomViewContent
