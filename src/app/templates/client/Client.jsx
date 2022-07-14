@@ -65,6 +65,11 @@ function Client() {
       counter += 1;
     }, 15000);
     initMatrix.once('init_loading_finished', async () => {
+      if (getUrlPrams('jwt')) {
+        logout();
+        return;
+      }
+
       clearInterval(iId);
       initHotkeys();
       initRoomListListener(initMatrix.roomList);
