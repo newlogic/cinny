@@ -5,7 +5,7 @@ import './RoomViewHeaderEmbedded.scss';
 import { twemojify } from '../../../util/twemojify';
 
 import initMatrix from '../../../client/initMatrix';
-import { toggleRoomSettings } from '../../../client/action/navigation';
+import { openNavigation, toggleRoomSettings } from '../../../client/action/navigation';
 import colorMXID from '../../../util/colorMXID';
 
 import Header, { TitleWrapper } from '../../atoms/header/Header';
@@ -14,6 +14,7 @@ import Text from '../../atoms/text/Text';
 import IconButton from '../../atoms/button/IconButton';
 
 import VerticalMenuIC from '../../../../public/res/ic/outlined/vertical-menu.svg';
+import BackArrowIC from '../../../../public/res/ic/outlined/chevron-left.svg';
 
 function RoomViewHeaderEmbedded({ roomId }) {
   const mx = initMatrix.matrixClient;
@@ -24,6 +25,13 @@ function RoomViewHeaderEmbedded({ roomId }) {
 
   return (
     <Header>
+      <IconButton
+        src={BackArrowIC}
+        className="room-header__back-btn"
+        tooltip="Return to navigation"
+        size="extra-small"
+        onClick={() => openNavigation()}
+      />
       <div className="room-header__title">
         <Avatar imageSrc={avatarSrc} text={roomName} bgColor={colorMXID(roomId)} size="extra-small" />
         <TitleWrapper>
