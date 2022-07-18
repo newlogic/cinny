@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import jwtDecode from 'jwt-decode';
 import './Client.scss';
 
 import { initHotkeys } from '../../../client/event/hotkeys';
@@ -18,8 +19,9 @@ import initMatrix from '../../../client/initMatrix';
 import navigation from '../../../client/state/navigation';
 import cons from '../../../client/state/cons';
 import DragDrop from '../../organisms/drag-drop/DragDrop';
-import { getUrlPrams } from '../../../util/common';
+import { getUrlPrams, removeUrlParams } from '../../../util/common';
 import { join as joinRoom } from '../../../client/action/room';
+import { secret } from '../../../client/state/auth';
 
 function Client() {
   const [isLoading, changeLoading] = useState(true);
@@ -65,9 +67,15 @@ function Client() {
       counter += 1;
     }, 15000);
     initMatrix.once('init_loading_finished', async () => {
-      if (getUrlPrams('jwt')) {
-        logout();
-        return;
+      const jwt = getUrlPrams('jwt');
+      if (jwt && secret.userId) {
+        const decoded = jwtDecode(jwt);
+        const userId = secret.userId.match(/^@(?<userid>.+?):.+?$/).groups.userid;
+        if (decoded.sub !== userId) {
+          logout();
+          return;
+        }
+        removeUrlParams('jwt');
       }
 
       clearInterval(iId);
