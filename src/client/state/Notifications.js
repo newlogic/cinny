@@ -1,6 +1,7 @@
 import EventEmitter from 'events';
 import renderAvatar from '../../app/atoms/avatar/render';
 import { cssColorMXID } from '../../util/colorMXID';
+import { getUrlPrams } from '../../util/common';
 import { selectRoom } from '../action/navigation';
 import cons from './cons';
 import navigation from './navigation';
@@ -219,15 +220,31 @@ class Notifications extends EventEmitter {
         scale: 8,
       });
 
-      const noti = new window.Notification(title, {
-        body: mEvent.getContent().body,
-        icon,
-        silent: settings.isNotificationSounds,
-      });
-      if (settings.isNotificationSounds) {
-        noti.onshow = () => this._playNotiSound();
+      const isEmbed = getUrlPrams('embed') === 'true';
+      if (isEmbed) {
+        window.parent.postMessage({
+          type: 'notification',
+          data: {
+            title,
+            icon,
+            body: mEvent.getContent().body,
+            silent: settings.isNotificationSounds,
+          },
+        }, '*');
+        if (settings.isNotificationSounds) {
+          this._playNotiSound();
+        }
+      } else {
+        const noti = new window.Notification(title, {
+          body: mEvent.getContent().body,
+          icon,
+          silent: settings.isNotificationSounds,
+        });
+        if (settings.isNotificationSounds) {
+          noti.onshow = () => this._playNotiSound();
+        }
+        noti.onclick = () => selectRoom(room.roomId, mEvent.getId());
       }
-      noti.onclick = () => selectRoom(room.roomId, mEvent.getId());
     } else {
       this._playNotiSound();
     }
