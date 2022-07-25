@@ -264,12 +264,12 @@ const tabItems = [{
 }, {
   text: tabText.SECURITY,
   iconSrc: LockIC,
-  disabled: false,
+  disabled: true,
   render: () => <SecuritySection />,
 }, {
   text: tabText.ABOUT,
   iconSrc: InfoIC,
-  disabled: false,
+  disabled: true,
   render: () => <AboutSection />,
 }];
 
@@ -311,7 +311,7 @@ function Settings() {
       title={<Text variant="s1" weight="medium" primary>Settings</Text>}
       contentOptions={(
         <>
-          <Button variant="danger" iconSrc={PowerIC} onClick={handleLogout}>
+          <Button className="hidden" variant="danger" iconSrc={PowerIC} onClick={handleLogout}>
             Logout
           </Button>
           <IconButton src={CrossIC} onClick={requestClose} tooltip="Close" />

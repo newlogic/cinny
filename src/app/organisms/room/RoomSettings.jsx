@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import './RoomSettings.scss';
 
@@ -61,11 +61,11 @@ const tabItems = [{
 }, {
   iconSrc: ShieldUserIC,
   text: tabText.PERMISSIONS,
-  disabled: false,
+  disabled: true,
 }, {
   iconSrc: LockIC,
   text: tabText.SECURITY,
-  disabled: false,
+  disabled: true,
 }];
 
 function GeneralSettings({ roomId }) {
@@ -165,6 +165,19 @@ function RoomSettings({ roomId }) {
     };
   }, []);
 
+  const mx = initMatrix.matrixClient;
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    mx.isSynapseAdministrator()
+      .then((_isAdmin) => setIsAdmin(isAdmin || _isAdmin))
+      .catch(() => setIsAdmin(false));
+  });
+
+  const settingsTabItems = useMemo(() => tabItems.map((tabItem) => (
+    { ...tabItem, disabled: tabItem.disabled ? !isAdmin : false }
+  )), [isAdmin]);
+
   if (!navigation.isRoomSettings) return null;
 
   return (
@@ -189,8 +202,8 @@ function RoomSettings({ roomId }) {
           </Header>
           <RoomProfile roomId={roomId} />
           <Tabs
-            items={tabItems}
-            defaultSelected={tabItems.findIndex((tab) => tab.text === selectedTab.text)}
+            items={settingsTabItems}
+            defaultSelected={settingsTabItems.findIndex((tab) => tab.text === selectedTab.text)}
             onSelect={handleTabChange}
           />
           <div className="room-settings__cards-wrapper">

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './DrawerHeader.scss';
 
@@ -31,9 +31,17 @@ import ChevronBottomIC from '../../../../public/res/ic/outlined/chevron-bottom.s
 export function HomeSpaceOptions({ spaceId, afterOptionSelect }) {
   const mx = initMatrix.matrixClient;
   const room = mx.getRoom(spaceId);
-  const canManage = room
+  const _canManage = room
     ? room.currentState.maySendStateEvent('m.space.child', mx.getUserId())
-    : true;
+    : false;
+
+  const [canManage, setCanManage] = useState(_canManage);
+
+  useEffect(() => {
+    mx.isSynapseAdministrator()
+      .then((isAdmin) => setCanManage(canManage || isAdmin))
+      .catch(() => setCanManage(false));
+  });
 
   return (
     <>

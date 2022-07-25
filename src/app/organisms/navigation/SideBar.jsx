@@ -351,8 +351,8 @@ function SideBar() {
             <div className="featured-container">
               <FeaturedTab />
             </div>
-            <div className="sidebar-divider" />
-            <div className="space-container">
+            <div className="sidebar-divider hidden" />
+            <div className="space-container hidden">
               <SpaceShortcut />
               <SidebarAvatar
                 tooltip="Pin spaces"
@@ -367,6 +367,7 @@ function SideBar() {
         <div className="sidebar-divider" />
         <div className="sticky-container">
           <SidebarAvatar
+            className="hidden"
             tooltip="Search"
             onClick={() => openSearch()}
             avatar={<Avatar iconSrc={SearchIC} size="normal" />}
