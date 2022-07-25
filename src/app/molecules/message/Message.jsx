@@ -9,7 +9,9 @@ import { getShortcodeToCustomEmoji } from '../../organisms/emoji-board/custom-em
 import { twemojify } from '../../../util/twemojify';
 
 import initMatrix from '../../../client/initMatrix';
-import { getUsername, getUsernameOfRoomMember, parseReply } from '../../../util/matrixUtil';
+import {
+  getPowerLabel, getUsername, getUsernameOfRoomMember, parseReply
+} from '../../../util/matrixUtil';
 import colorMXID from '../../../util/colorMXID';
 import { getEventCords } from '../../../util/common';
 import { redactEvent, sendReaction } from '../../../client/action/roomTimeline';
@@ -68,7 +70,7 @@ const MessageAvatar = React.memo(({
 ));
 
 const MessageHeader = React.memo(({
-  userId, username, time,
+  userId, username, role, time,
 }) => (
   <div className="message__header">
     <Text
@@ -79,8 +81,17 @@ const MessageHeader = React.memo(({
       span
     >
       <span>{twemojify(username)}</span>
-      <span>{twemojify(userId)}</span>
     </Text>
+    {role && (
+      <Text
+        className="message__role"
+        variant="b1"
+        weight="medium"
+        span
+      >
+        {role}
+      </Text>
+    )}
     <div className="message__time">
       <Text variant="b3">{time}</Text>
     </div>
@@ -677,7 +688,10 @@ function Message({
   mEvent, isBodyOnly, roomTimeline, focus, time,
 }) {
   const [isEditing, setIsEditing] = useState(false);
+  const mx = initMatrix.matrixClient;
   const roomId = mEvent.getRoomId();
+  const room = mx.getRoom(roomId);
+  const roomMembers = room.getMembersWithMembership('join');
   const { editedTimeline, reactionTimeline } = roomTimeline ?? {};
 
   const className = ['message', (isBodyOnly ? 'message--body-only' : 'message--full')];
@@ -689,6 +703,9 @@ function Message({
   let { body } = content;
   const username = mEvent.sender ? getUsernameOfRoomMember(mEvent.sender) : getUsername(senderId);
   const avatarSrc = mEvent.sender?.getAvatarUrl(initMatrix.matrixClient.baseUrl, 36, 36, 'crop') ?? null;
+
+  const senderMember = roomMembers.find((member) => member.userId === senderId);
+  const powerLevelLabel = getPowerLabel(senderMember.powerLevel);
 
   const edit = useCallback(() => {
     setIsEditing(true);
@@ -735,7 +752,7 @@ function Message({
       }
       <div className="message__main-container">
         {!isBodyOnly && (
-          <MessageHeader userId={senderId} username={username} time={time} />
+          <MessageHeader userId={senderId} username={username} role={powerLevelLabel} time={time} />
         )}
         {roomTimeline && isReply && (
           <MessageReplyWrapper

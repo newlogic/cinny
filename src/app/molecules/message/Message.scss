@@ -15,7 +15,7 @@
       display: flex;
     }
   }
-  
+
   &__avatar-container {
     padding-top: 6px;
     @include dir.side(margin, 0, var(--sp-tight));
@@ -115,11 +115,6 @@
       @extend .cp-txt__ellipsis;
       color: inherit;
     }
-    & > span:last-child { display: none; }
-    &:hover {
-      & > span:first-child { display: none; }
-      & > span:last-child { display: block; }
-    }
   }
 
   & .message__time {
@@ -132,6 +127,16 @@
     }
   }
 }
+
+.message__role {
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  line-height: initial;
+  color: white;
+  background-color: var(--bg-positive);
+}
+
 .message__reply {
   &-wrapper {
     min-height: 20px;
@@ -168,7 +173,7 @@
   & > .text > a {
     white-space: initial !important;
   }
-  
+
   & span[data-mx-pill] {
     background-color: hsla(0, 0%, 64%, 0.15);
     padding: 0 2px;
@@ -276,7 +281,7 @@
 
   &--active {
     background-color: var(--bg-caution-active);
-    
+
     @media (hover: hover) {
       &:hover {
         background-color: var(--bg-caution-hover);
