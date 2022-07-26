@@ -705,7 +705,7 @@ function Message({
   const avatarSrc = mEvent.sender?.getAvatarUrl(initMatrix.matrixClient.baseUrl, 36, 36, 'crop') ?? null;
 
   const senderMember = roomMembers.find((member) => member.userId === senderId);
-  const powerLevelLabel = getPowerLabel(senderMember.powerLevel);
+  const powerLevelLabel = getPowerLabel(senderMember?.powerLevel);
 
   const edit = useCallback(() => {
     setIsEditing(true);
