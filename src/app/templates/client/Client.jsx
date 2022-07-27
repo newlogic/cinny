@@ -17,6 +17,7 @@ import logout from '../../../client/action/logout';
 
 import initMatrix from '../../../client/initMatrix';
 import navigation from '../../../client/state/navigation';
+import * as auth from '../../../client/action/auth';
 import cons from '../../../client/state/cons';
 import DragDrop from '../../organisms/drag-drop/DragDrop';
 import { getUrlPrams, removeUrlParams } from '../../../util/common';
@@ -68,15 +69,25 @@ function Client() {
     }, 15000);
     initMatrix.once('init_loading_finished', async () => {
       const jwt = getUrlPrams('jwt');
+      const currentJWT = localStorage.getItem(cons.jwt.TOKEN);
       if (jwt && secret.userId) {
         const decoded = jwtDecode(jwt);
         const userId = secret.userId.match(/^@(?<userid>.+?):.+?$/).groups.userid;
-        if (decoded.sub !== userId) {
+        if (decoded.sub !== userId || !currentJWT) {
           logout();
           return;
         }
-        removeUrlParams('jwt');
       }
+      if (secret.baseUrl && currentJWT) {
+        try {
+          // Reverify current token if it is still valid (e.g. not expired)
+          await auth.loginWithJWT(secret.baseUrl, currentJWT);
+        } catch (error) {
+          logout();
+          return;
+        }
+      }
+      removeUrlParams('jwt');
 
       clearInterval(iId);
       initHotkeys();

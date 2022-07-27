@@ -61,6 +61,7 @@ async function loginWithJWT(baseUrl, token) {
 
   const myBaseUrl = res?.well_known?.['m.homeserver']?.base_url || client.baseUrl;
   updateLocalStore(res.access_token, res.device_id, res.user_id, myBaseUrl);
+  localStorage.setItem(cons.jwt.TOKEN, token);
 }
 
 // eslint-disable-next-line camelcase

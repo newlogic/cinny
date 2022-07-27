@@ -6,6 +6,9 @@ const cons = {
     USER_ID: 'cinny_user_id',
     BASE_URL: 'cinny_hs_base_url',
   },
+  jwt: {
+    TOKEN: 'cinny_jwt',
+  },
   DEVICE_DISPLAY_NAME: 'Cinny Web',
   IN_CINNY_SPACES: 'in.cinny.spaces',
   tabs: {
