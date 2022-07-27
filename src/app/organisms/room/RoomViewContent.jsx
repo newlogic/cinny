@@ -118,7 +118,7 @@ function handleOnClickCapture(e) {
   }
 }
 
-function renderEvent(roomTimeline, mEvent, prevMEvent, isFocus = false) {
+function renderEvent(roomTimeline, mEvent, prevMEvent, isFocus = false, isDirect = false) {
   const isBodyOnly = (prevMEvent !== null
     && prevMEvent.getSender() === mEvent.getSender()
     && prevMEvent.getType() !== 'm.room.member'
@@ -147,6 +147,7 @@ function renderEvent(roomTimeline, mEvent, prevMEvent, isFocus = false) {
       key={mEvent.getId()}
       mEvent={mEvent}
       isBodyOnly={isBodyOnly}
+      isDirect={isDirect}
       roomTimeline={roomTimeline}
       focus={isFocus}
       time={time}
@@ -493,6 +494,13 @@ function RoomViewContent({ eventId, roomTimeline }) {
     const readUptoEvent = readUptoEvtStore.getItem();
     let unreadDivider = false;
 
+    const { room } = roomTimeline;
+    const roomMembers = room.getMembersWithMembership('join');
+    const isDirect = roomMembers.reduce(
+      (result, member) => result || Boolean(member.getDMInviter()),
+      false,
+    );
+
     if (roomTimeline.canPaginateBackward() || limit.from > 0) {
       tl.push(loadingMsgPlaceholders(1, PLACEHOLDER_COUNT));
       itemCountIndex += PLACEHOLDER_COUNT;
@@ -538,7 +546,7 @@ function RoomViewContent({ eventId, roomTimeline }) {
       const isFocus = focusId === mEvent.getId();
       if (isFocus) jumpToItemIndex = itemCountIndex;
 
-      tl.push(renderEvent(roomTimeline, mEvent, isNewEvent ? null : prevMEvent, isFocus));
+      tl.push(renderEvent(roomTimeline, mEvent, isNewEvent ? null : prevMEvent, isFocus, isDirect));
       itemCountIndex += 1;
     }
     if (roomTimeline.canPaginateForward() || limit.length < timeline.length) {

@@ -48,6 +48,7 @@ function PeopleDrawer({ roomId }) {
   const [membership, setMembership] = useState('join');
   const [memberList, setMemberList] = useState([]);
   const [searchedMembers, setSearchedMembers] = useState(null);
+  const [isDirect, setIsDirect] = useState(false);
   const searchRef = useRef(null);
 
   const getMembersWithMembership = useCallback(
@@ -104,6 +105,12 @@ function PeopleDrawer({ roomId }) {
       if (isRoomChanged) return;
       updateMemberList();
     });
+
+    const _isDirect = getMembersWithMembership(membership).reduce(
+      (result, member) => result || Boolean(member.getDMInviter()),
+      false,
+    );
+    setIsDirect(_isDirect);
 
     asyncSearch.on(asyncSearch.RESULT_SENT, handleSearchData);
     mx.on('RoomMember.membership', updateMemberList);
@@ -168,7 +175,7 @@ function PeopleDrawer({ roomId }) {
                     avatarSrc={member.avatarSrc}
                     name={member.name}
                     color={colorMXID(member.userId)}
-                    peopleRole={member.peopleRole}
+                    peopleRole={isDirect ? null : member.peopleRole}
                   />
                 ))
               }

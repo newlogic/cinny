@@ -685,13 +685,10 @@ function getEditedBody(editedMEvent) {
 }
 
 function Message({
-  mEvent, isBodyOnly, roomTimeline, focus, time,
+  mEvent, isBodyOnly, isDirect, roomTimeline, focus, time,
 }) {
   const [isEditing, setIsEditing] = useState(false);
-  const mx = initMatrix.matrixClient;
   const roomId = mEvent.getRoomId();
-  const room = mx.getRoom(roomId);
-  const roomMembers = room.getMembersWithMembership('join');
   const { editedTimeline, reactionTimeline } = roomTimeline ?? {};
 
   const className = ['message', (isBodyOnly ? 'message--body-only' : 'message--full')];
@@ -704,8 +701,14 @@ function Message({
   const username = mEvent.sender ? getUsernameOfRoomMember(mEvent.sender) : getUsername(senderId);
   const avatarSrc = mEvent.sender?.getAvatarUrl(initMatrix.matrixClient.baseUrl, 36, 36, 'crop') ?? null;
 
-  const senderMember = roomMembers.find((member) => member.userId === senderId);
-  const powerLevelLabel = getPowerLabel(senderMember?.powerLevel);
+  let powerLevelLabel = null;
+  if (!isDirect) {
+    const mx = initMatrix.matrixClient;
+    const room = mx.getRoom(roomId);
+    const roomMembers = room.getMembersWithMembership('join');
+    const senderMember = roomMembers.find((member) => member.userId === senderId);
+    powerLevelLabel = getPowerLabel(senderMember?.powerLevel);
+  }
 
   const edit = useCallback(() => {
     setIsEditing(true);

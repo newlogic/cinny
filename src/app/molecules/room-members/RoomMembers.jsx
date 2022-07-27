@@ -36,6 +36,7 @@ function useMemberOfMembership(roomId, membership) {
   const mx = initMatrix.matrixClient;
   const room = mx.getRoom(roomId);
   const [members, setMembers] = useState([]);
+  const [isDirect, setIsDirect] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -50,6 +51,12 @@ function useMemberOfMembership(roomId, membership) {
       );
       setMembers(memberOfMembership);
     };
+
+    const _isDirect = room.getMembersWithMembership(membership).reduce(
+      (result, member) => result || Boolean(member.getDMInviter()),
+      false,
+    );
+    setIsDirect(_isDirect);
 
     updateMemberList();
     isLoadingMembers = true;
@@ -68,7 +75,7 @@ function useMemberOfMembership(roomId, membership) {
     };
   }, [membership]);
 
-  return [members];
+  return [members, isDirect];
 }
 
 function useSearchMembers(members) {
@@ -110,7 +117,7 @@ function useSearchMembers(members) {
 function RoomMembers({ roomId }) {
   const [itemCount, setItemCount] = useState(PER_PAGE_MEMBER);
   const [membership, setMembership] = useState('join');
-  const [members] = useMemberOfMembership(roomId, membership);
+  const [members, isDirect] = useMemberOfMembership(roomId, membership);
   const [searchMembers, handleSearch] = useSearchMembers(members);
 
   useEffect(() => {
@@ -154,7 +161,7 @@ function RoomMembers({ roomId }) {
             avatarSrc={member.avatarSrc}
             name={member.name}
             color={colorMXID(member.userId)}
-            peopleRole={member.peopleRole}
+            peopleRole={isDirect ? null : member.peopleRole}
           />
         ))}
         {
