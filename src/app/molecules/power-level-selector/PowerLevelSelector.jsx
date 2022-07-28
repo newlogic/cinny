@@ -10,7 +10,7 @@ function PowerLevelSelector({
   return (
     <div className="power-level-selector">
       {max >= 0 && <MenuHeader>Presets</MenuHeader>}
-      {max >= 100 && <MenuItem variant={value === 100 ? 'positive' : 'surface'} onClick={() => onSelect(100)}>Exhibitor - 100</MenuItem>}
+      {max >= 50 && <MenuItem variant={value === 50 ? 'positive' : 'surface'} onClick={() => onSelect(50)}>Exhibitor - 50</MenuItem>}
       {max >= 0 && <MenuItem variant={value === 0 ? 'positive' : 'surface'} onClick={() => onSelect(0)}>Member - 0</MenuItem>}
     </div>
   );
