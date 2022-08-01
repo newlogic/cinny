@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import jwtDecode from 'jwt-decode';
 import './Client.scss';
 
 import { initHotkeys } from '../../../client/event/hotkeys';
@@ -14,15 +13,14 @@ import Windows from '../../organisms/pw/Windows';
 import Dialogs from '../../organisms/pw/Dialogs';
 import EmojiBoardOpener from '../../organisms/emoji-board/EmojiBoardOpener';
 import logout from '../../../client/action/logout';
+import { verifyCurrentJWT } from '../../../client/action/auth';
 
 import initMatrix from '../../../client/initMatrix';
 import navigation from '../../../client/state/navigation';
-import * as auth from '../../../client/action/auth';
 import cons from '../../../client/state/cons';
 import DragDrop from '../../organisms/drag-drop/DragDrop';
-import { getUrlPrams, removeUrlParams } from '../../../util/common';
 import { join as joinRoom } from '../../../client/action/room';
-import { secret } from '../../../client/state/auth';
+import { getUrlPrams } from '../../../util/common';
 
 function Client() {
   const [isLoading, changeLoading] = useState(true);
@@ -68,26 +66,10 @@ function Client() {
       counter += 1;
     }, 15000);
     initMatrix.once('init_loading_finished', async () => {
-      const jwt = getUrlPrams('jwt');
-      const currentJWT = localStorage.getItem(cons.jwt.TOKEN);
-      if (jwt && secret.userId) {
-        const decoded = jwtDecode(jwt);
-        const userId = secret.userId.match(/^@(?<userid>.+?):.+?$/).groups.userid;
-        if (decoded.sub !== userId || !currentJWT) {
-          logout();
-          return;
-        }
+      const result = await verifyCurrentJWT();
+      if (!result) {
+        return;
       }
-      if (secret.baseUrl && currentJWT) {
-        try {
-          // Reverify current token if it is still valid (e.g. not expired)
-          await auth.loginWithJWT(secret.baseUrl, currentJWT);
-        } catch (error) {
-          logout();
-          return;
-        }
-      }
-      removeUrlParams('jwt');
 
       clearInterval(iId);
       initHotkeys();

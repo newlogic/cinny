@@ -102,6 +102,16 @@ export function getUrlPrams(paramName) {
   return urlParams.get(paramName);
 }
 
+export function setUrlParams(paramName, paramValue) {
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  urlParams.set(paramName, paramValue);
+
+  const url = new URL(window.location.href);
+  url.search = urlParams.toString();
+  window.location.replace(url.toString());
+}
+
 export function removeUrlParams(paramName, { reload = false } = {}) {
   const queryString = window.location.search;
   const urlParams = new URLSearchParams(queryString);

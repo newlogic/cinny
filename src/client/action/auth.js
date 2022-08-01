@@ -1,5 +1,10 @@
 import * as sdk from 'matrix-js-sdk';
+import jwtDecode from 'jwt-decode';
 import cons from '../state/cons';
+
+import { secret } from '../state/auth';
+import { getUrlPrams, removeUrlParams, setUrlParams } from '../../util/common';
+import logout from './logout';
 
 function updateLocalStore(accessToken, deviceId, userId, baseUrl) {
   localStorage.setItem(cons.secretKey.ACCESS_TOKEN, accessToken);
@@ -52,16 +57,44 @@ async function loginWithToken(baseUrl, token) {
   updateLocalStore(res.access_token, res.device_id, res.user_id, myBaseUrl);
 }
 
-async function loginWithJWT(baseUrl, token) {
+async function loginWithJWT(baseUrl, token, deviceId) {
   const client = createTemporaryClient(baseUrl);
 
   const res = await client.login('org.matrix.login.jwt', {
     token,
+    device_id: deviceId,
   });
 
   const myBaseUrl = res?.well_known?.['m.homeserver']?.base_url || client.baseUrl;
   updateLocalStore(res.access_token, res.device_id, res.user_id, myBaseUrl);
   localStorage.setItem(cons.jwt.TOKEN, token);
+}
+
+async function verifyCurrentJWT() {
+  const jwt = getUrlPrams('jwt');
+  const currentJWT = localStorage.getItem(cons.jwt.TOKEN);
+  if (jwt && secret.userId) {
+    const decoded = jwtDecode(jwt);
+    const userId = secret.userId.match(/^@(?<userid>.+?):.+?$/).groups.userid;
+    if (decoded.sub !== userId || !currentJWT) {
+      logout();
+      return false;
+    }
+  }
+  if (secret.baseUrl && currentJWT) {
+    try {
+      // Reverify current token if it is still valid (e.g. not expired)
+      await loginWithJWT(secret.baseUrl, currentJWT, secret.deviceId);
+    } catch (error) {
+      if (jwt && secret.deviceId) {
+        setUrlParams('deviceId', secret.deviceId);
+      }
+      logout();
+      return false;
+    }
+  }
+  removeUrlParams('jwt');
+  return true;
 }
 
 // eslint-disable-next-line camelcase
@@ -111,6 +144,6 @@ async function completeRegisterStage(
 
 export {
   createTemporaryClient, login, verifyEmail,
-  loginWithToken, loginWithJWT, startSsoLogin,
-  completeRegisterStage,
+  loginWithToken, loginWithJWT, verifyCurrentJWT,
+  startSsoLogin, completeRegisterStage,
 };

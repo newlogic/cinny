@@ -538,7 +538,9 @@ function Auth() {
         throw new Error();
       }
       const baseUrl = payload.home_server;
-      await auth.loginWithJWT(baseUrl, jwt);
+      const deviceId = getUrlPrams('deviceId');
+      await auth.loginWithJWT(baseUrl, jwt, deviceId);
+      removeUrlParams('deviceId');
     } catch {
       setJWT(null);
     }
