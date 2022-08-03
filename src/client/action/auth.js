@@ -1,10 +1,20 @@
 import * as sdk from 'matrix-js-sdk';
+import { deriveKey } from 'matrix-js-sdk/lib/crypto/key_passphrase';
 import jwtDecode from 'jwt-decode';
 import cons from '../state/cons';
 
 import { secret } from '../state/auth';
 import { getUrlPrams, removeUrlParams, setUrlParams } from '../../util/common';
 import logout from './logout';
+import initMatrix from '../initMatrix';
+import {
+  clearSecretStorageKeys,
+  deletePrivateKey,
+  getPrivateKey,
+  hasPrivateKey,
+  storePrivateKey,
+} from '../state/secretStorageKeys';
+import { getDefaultSSKey, getSSKeyInfo } from '../../util/matrixUtil';
 
 function updateLocalStore(accessToken, deviceId, userId, baseUrl) {
   localStorage.setItem(cons.secretKey.ACCESS_TOKEN, accessToken);
@@ -70,6 +80,71 @@ async function loginWithJWT(baseUrl, token, deviceId) {
   localStorage.setItem(cons.jwt.TOKEN, token);
 }
 
+async function setupCrossSigning(setupKey, restoreKey) {
+  const mx = initMatrix.matrixClient;
+  const recoveryKey = await mx.createRecoveryKeyFromPassphrase(restoreKey);
+  clearSecretStorageKeys();
+
+  await mx.bootstrapSecretStorage({
+    createSecretStorageKey: async () => recoveryKey,
+    setupNewKeyBackup: true,
+    setupNewSecretStorage: true,
+  });
+
+  const authUploadDeviceSigningKeys = async (makeRequest) => {
+    await makeRequest({
+      type: 'm.login.password',
+      password: setupKey,
+      identifier: {
+        type: 'm.id.user',
+        user: secret.userId,
+      },
+    });
+  };
+
+  await mx.bootstrapCrossSigning({
+    authUploadDeviceSigningKeys,
+    setupNewCrossSigning: true,
+  });
+
+  await fetch('/matrix-chat/cross-signing-complete', {
+    method: 'POST',
+    credentials: 'include',
+  });
+}
+
+async function restoreCrossSigning(recoveryKey) {
+  const mx = initMatrix.matrixClient;
+
+  let keyData;
+  const defaultSSKey = getDefaultSSKey();
+  if (hasPrivateKey(defaultSSKey)) {
+    keyData = { keyId: defaultSSKey, privateKey: getPrivateKey(defaultSSKey) };
+  } else {
+    const sSKeyInfo = getSSKeyInfo(defaultSSKey);
+    const { salt, iterations } = sSKeyInfo.passphrase || {};
+    const privateKey = await deriveKey(recoveryKey, salt, iterations);
+    keyData = {
+      keyId: defaultSSKey,
+      phrase: recoveryKey,
+      privateKey,
+    };
+    storePrivateKey(keyData.keyId, keyData.privateKey);
+  }
+  try {
+    const backupInfo = await mx.getKeyBackupVersion();
+    await mx.restoreKeyBackupWithSecretStorage(
+      backupInfo,
+      undefined,
+      undefined,
+    );
+  } catch (error) {
+    if (error.errcode === 'RESTORE_BACKUP_ERROR_BAD_KEY') {
+      deletePrivateKey(keyData.keyId);
+    }
+  }
+}
+
 async function verifyCurrentJWT() {
   const jwt = getUrlPrams('jwt');
   const currentJWT = localStorage.getItem(cons.jwt.TOKEN);
@@ -93,6 +168,19 @@ async function verifyCurrentJWT() {
       return false;
     }
   }
+
+  const csSetupKey = getUrlPrams('csSetupKey');
+  const csRecoveryKey = getUrlPrams('csRecoveryKey');
+  removeUrlParams('csSetupKey');
+  removeUrlParams('csRecoveryKey');
+  if (csRecoveryKey) {
+    if (csSetupKey) {
+      await setupCrossSigning(csSetupKey, csRecoveryKey);
+    } else {
+      await restoreCrossSigning(csRecoveryKey);
+    }
+  }
+
   removeUrlParams('jwt');
   return true;
 }
