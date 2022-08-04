@@ -14,7 +14,7 @@ import initMatrix from '../../../client/initMatrix';
 import cons from '../../../client/state/cons';
 import navigation from '../../../client/state/navigation';
 import { openProfileViewer } from '../../../client/action/navigation';
-import { diffMinutes, isInSameDay, Throttle } from '../../../util/common';
+import { diffMinutes, getUrlPrams, isInSameDay, Throttle } from '../../../util/common';
 import { markAsRead } from '../../../client/action/notifications';
 
 import Divider from '../../atoms/divider/Divider';
@@ -501,7 +501,8 @@ function RoomViewContent({ eventId, roomTimeline }) {
       false,
     );
 
-    if (roomTimeline.canPaginateBackward() || limit.from > 0) {
+    const purgeRef = getUrlPrams('purgeRef');
+    if (roomTimeline.canPaginateBackward(purgeRef) || limit.from > 0) {
       tl.push(loadingMsgPlaceholders(1, PLACEHOLDER_COUNT));
       itemCountIndex += PLACEHOLDER_COUNT;
     }
@@ -510,7 +511,7 @@ function RoomViewContent({ eventId, roomTimeline }) {
       const mEvent = timeline[i];
       const prevMEvent = timeline[i - 1] ?? null;
 
-      if (i === 0 && !roomTimeline.canPaginateBackward()) {
+      if (i === 0 && !roomTimeline.canPaginateBackward(purgeRef)) {
         if (mEvent.getType() === 'm.room.create') {
           tl.push(
             <RoomIntroContainer key={mEvent.getId()} event={mEvent} timeline={roomTimeline} />,

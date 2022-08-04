@@ -106,8 +106,12 @@ class RoomTimeline extends EventEmitter {
     return getLastLinkedTimeline(this.activeTimeline) === this.liveTimeline;
   }
 
-  canPaginateBackward() {
-    if (this.timeline[0]?.getType() === 'm.room.create') return false;
+  canPaginateBackward(purgeRef = '') {
+    const event = this.timeline[0];
+    if (event?.getType() === 'm.room.create') return false;
+    if (event?.getType() === 'm.room.member'
+    && event.event.content.membership === 'leave'
+    && event.event.state_key === purgeRef) return false; // if we purged the room
     const tm = getFirstLinkedTimeline(this.activeTimeline);
     return tm.getPaginationToken('b') !== null;
   }
