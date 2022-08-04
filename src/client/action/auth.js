@@ -173,7 +173,7 @@ async function verifyCurrentJWT() {
   const csRecoveryKey = getUrlPrams('csRecoveryKey');
   removeUrlParams('csSetupKey');
   removeUrlParams('csRecoveryKey');
-  if (csRecoveryKey) {
+  if (csRecoveryKey && window.crypto?.subtle) {
     if (csSetupKey) {
       await setupCrossSigning(csSetupKey, csRecoveryKey);
     } else {
