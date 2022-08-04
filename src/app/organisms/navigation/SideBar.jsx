@@ -98,7 +98,7 @@ function CrossSigninAlert() {
 
   return (
     <SidebarAvatar
-      className="sidebar__cross-signin-alert"
+      className="hidden sidebar__cross-signin-alert"
       tooltip={`${unverified.length} unverified sessions`}
       onClick={() => openSettings(settingTabText.SECURITY)}
       avatar={<Avatar iconSrc={ShieldUserIC} iconColor="var(--ic-danger-normal)" size="normal" />}

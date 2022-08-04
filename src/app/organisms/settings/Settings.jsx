@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import './Settings.scss';
 
 import initMatrix from '../../../client/initMatrix';
@@ -296,6 +296,22 @@ function useWindowToggle(setSelectedTab) {
 function Settings() {
   const [selectedTab, setSelectedTab] = useState(tabItems[0]);
   const [isOpen, requestClose] = useWindowToggle(setSelectedTab);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const dynamicTabItems = useMemo(() => {
+    if (!isAdmin) {
+      return tabItems;
+    }
+    return tabItems.map((tabItem) => (
+      tabItem.text === tabText.SECURITY
+        ? { ...tabItem, disabled: !isAdmin }
+        : tabItem
+    ));
+  }, [isAdmin]);
+
+  useEffect(() => {
+    const mx = initMatrix.matrixClient;
+    mx.isSynapseAdministrator().then(setIsAdmin);
+  }, []);
 
   const handleTabChange = (tabItem) => setSelectedTab(tabItem);
   const handleLogout = async () => {
@@ -323,8 +339,8 @@ function Settings() {
         <div className="settings-window__content">
           <ProfileEditor userId={initMatrix.matrixClient.getUserId()} />
           <Tabs
-            items={tabItems}
-            defaultSelected={tabItems.findIndex((tab) => tab.text === selectedTab.text)}
+            items={dynamicTabItems}
+            defaultSelected={dynamicTabItems.findIndex((tab) => tab.text === selectedTab.text)}
             onSelect={handleTabChange}
           />
           <div className="settings-window__cards-wrapper">
