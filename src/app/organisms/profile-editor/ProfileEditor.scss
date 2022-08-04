@@ -3,7 +3,11 @@
 
 .profile-editor {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
+
+  @media (min-width: 640px) {
+    align-items: flex-end;
+  }
 }
 
 .profile-editor__info,
@@ -30,12 +34,21 @@
   align-items: flex-end;
 
   & > .input-container  {
-    @extend .cp-fx__item-one;
+    width: 100%;
+
+    @media (min-width: 640px) {
+      width: auto;
+      flex-grow: 1;
+    }
   }
   & > button {
     height: 46px;
     margin-top: var(--sp-normal);
-    @include dir.side(margin, var(--sp-normal), 0);
+    @include dir.side(margin, 0, var(--sp-normal));
+
+    @media (min-width: 640px) {
+      @include dir.side(margin, var(--sp-normal), 0);
+    }
   }
 
 }
